@@ -192,7 +192,7 @@ RZ_API RZ_OWN char *rz_svd_find_file(RZ_NULLABLE const char *device_name) {
 	// 1. First check RZ_SVD_DIR environment variable if set
 	const char *svd_dir = getenv("RZ_SVD_DIR");
 	if (svd_dir) {
-		snprintf(path, sizeof(path), "%s/%s.svd", svd_dir, lower_name);
+		rz_strf(path, RZ_JOIN_2_PATHS("%s", "%s.svd"), svd_dir, lower_name);
 		if (rz_file_exists(path)) {
 			free(lower_name);
 			return strdup(path);
