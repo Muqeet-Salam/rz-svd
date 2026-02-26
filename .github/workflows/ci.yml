@@ -22,7 +22,7 @@ jobs:
           git 
       - name: Install meson and Python tools
         run: |
-          pip3 install meson PyYAML ninja pytest virtualenv
+          sudo apt-get install -y meson ninja-build python3-pip
       - name: Install Rizin
         run: |
           git clone --depth 1 https://github.com/rizinorg/rizin
