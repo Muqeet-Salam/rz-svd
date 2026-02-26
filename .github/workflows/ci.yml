@@ -1,0 +1,41 @@
+name: rz-svd
+
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+          python3-wheel \
+          python3-setuptools \
+          python3-dev \
+          ninja-build \
+          git 
+      - name: Install meson and Python tools
+        run: |
+          pip3 install meson PyYAML ninja pytest virtualenv
+      - name: Install Rizin
+        run: |
+          git clone --depth 1 https://github.com/rizinorg/rizin
+          cd rizin
+          meson setup build --buildtype=release --prefix=/usr
+          ninja -C build
+          sudo ninja -C build install
+          cd ..
+      - name: Build and install rz-svd
+        run: |
+          meson setup build --buildtype=release --prefix=/usr
+          ninja -C build
+          sudo ninja -C build install
+      - name: Verify plugin loads
+        run: |
+          rizin -qc "Lc" | grep rz-svd
