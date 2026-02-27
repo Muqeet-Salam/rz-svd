@@ -171,11 +171,15 @@ static RZ_OWN char *check_svd_in_dir(RZ_NULLABLE const char *dir_path, RZ_NULLAB
 		return NULL;
 	}
 
-	char path[1024];
-	snprintf(path, sizeof(path), "%s/%s.svd", dir_path, lower_name);
-	if (rz_file_exists(path)) {
-		return strdup(path);
+	char *path = rz_str_newf("%s/%s.svd", dir_path, lower_name);
+	if (!path) {
+		return NULL;
 	}
+
+	if (rz_file_exists(path)) {
+		return path;
+	}
+	free(path);
 	return NULL;
 }
 
@@ -219,11 +223,14 @@ RZ_API RZ_OWN char *rz_svd_find_file(RZ_NULLABLE const char *device_name) {
 	// 2. Check user home directory
 	const char *home = getenv("HOME");
 	if (home) {
-		char home_svd_dir[1024];
-		snprintf(home_svd_dir, sizeof(home_svd_dir), "%s/.local/share/rizin/svd", home);
-		if ((result = check_svd_in_dir(home_svd_dir, lower_name))) {
-			free(lower_name);
-			return result;
+		char *home_svd_dir = rz_str_newf("%s/.local/share/rizin/svd", home);
+		if (home_svd_dir) {
+			result = check_svd_in_dir(home_svd_dir, lower_name);
+			free(home_svd_dir);
+			if (result) {
+				free(lower_name);
+				return result;
+			}
 		}
 	}
 
