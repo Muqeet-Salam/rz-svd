@@ -2,9 +2,9 @@ name: rz-svd
 
 on:
   push:
-    branches: [ workflow-test ]
+    branches: [ dev ]
   pull_request:
-    branches: [ workflow-test ]
+    branches: [ dev ]
 jobs:
   build:
     runs-on: ubuntu-latest
