@@ -160,6 +160,26 @@ RZ_API RZ_NULLABLE RzSvdInterrupt *rz_svd_device_get_interrupt(RZ_NULLABLE RzSvd
 }
 
 /**
+ * \brief Check if SVD file exists in a given directory
+ *
+ * \param[in] dir_path Directory path to search in
+ * \param[in] lower_name Lowercase device name
+ * \return char* full path to SVD file or NULL if not found (caller must free)
+ */
+static RZ_OWN char *check_svd_in_dir(RZ_NULLABLE const char *dir_path, RZ_NULLABLE const char *lower_name) {
+	if (!dir_path || !lower_name) {
+		return NULL;
+	}
+
+	char path[1024];
+	snprintf(path, sizeof(path), "%s/%s.svd", dir_path, lower_name);
+	if (rz_file_exists(path)) {
+		return strdup(path);
+	}
+	return NULL;
+}
+
+/**
  * \brief Find an SVD file for a given device name
  *
  * Searches in standard locations in this order:
@@ -187,57 +207,51 @@ RZ_API RZ_OWN char *rz_svd_find_file(RZ_NULLABLE const char *device_name) {
 	}
 
 	// Try various locations
-	char path[1024];
+	char *result = NULL;
 
 	// 1. First check RZ_SVD_DIR environment variable if set
 	const char *svd_dir = getenv("RZ_SVD_DIR");
-	if (svd_dir) {
-		rz_strf(path, RZ_JOIN_2_PATHS("%s", "%s.svd"), svd_dir, lower_name);
-		if (rz_file_exists(path)) {
-			free(lower_name);
-			return strdup(path);
-		}
+	if (svd_dir && (result = check_svd_in_dir(svd_dir, lower_name))) {
+		free(lower_name);
+		return result;
 	}
 
 	// 2. Check user home directory
 	const char *home = getenv("HOME");
 	if (home) {
-		snprintf(path, sizeof(path), "%s/.local/share/rizin/svd/%s.svd", home, lower_name);
-		if (rz_file_exists(path)) {
+		char home_svd_dir[1024];
+		snprintf(home_svd_dir, sizeof(home_svd_dir), "%s/.local/share/rizin/svd", home);
+		if ((result = check_svd_in_dir(home_svd_dir, lower_name))) {
 			free(lower_name);
-			return strdup(path);
+			return result;
 		}
 	}
 
 	// 3. Check compile-time defined data directory (e.g., PREFIX/share/rizin/svd)
 #ifdef RZ_SVD_DATADIR
-	snprintf(path, sizeof(path), RZ_SVD_DATADIR "/%s.svd", lower_name);
-	if (rz_file_exists(path)) {
+	if ((result = check_svd_in_dir(RZ_SVD_DATADIR, lower_name))) {
 		free(lower_name);
-		return strdup(path);
+		return result;
 	}
 #endif
 
 	// 4. Check source directory (for development/testing)
 #ifdef RZ_SVD_SRCDIR
-	snprintf(path, sizeof(path), RZ_SVD_SRCDIR "/%s.svd", lower_name);
-	if (rz_file_exists(path)) {
+	if ((result = check_svd_in_dir(RZ_SVD_SRCDIR, lower_name))) {
 		free(lower_name);
-		return strdup(path);
+		return result;
 	}
 #endif
 
 	// 5. Fallback to standard system paths
-	snprintf(path, sizeof(path), "/usr/share/rizin/svd/%s.svd", lower_name);
-	if (rz_file_exists(path)) {
+	if ((result = check_svd_in_dir("/usr/share/rizin/svd", lower_name))) {
 		free(lower_name);
-		return strdup(path);
+		return result;
 	}
 
-	snprintf(path, sizeof(path), "/usr/local/share/rizin/svd/%s.svd", lower_name);
-	if (rz_file_exists(path)) {
+	if ((result = check_svd_in_dir("/usr/local/share/rizin/svd", lower_name))) {
 		free(lower_name);
-		return strdup(path);
+		return result;
 	}
 
 	free(lower_name);
