@@ -171,7 +171,7 @@ static RZ_OWN char *check_svd_in_dir(RZ_NULLABLE const char *dir_path, RZ_NULLAB
 		return NULL;
 	}
 
-	char *path = rz_str_newf("%s/%s.svd", dir_path, lower_name);
+	char *path = rz_str_newf(RZ_JOIN_2_PATHS("%s", "%s.svd"), dir_path, lower_name);
 	if (!path) {
 		return NULL;
 	}
@@ -184,20 +184,14 @@ static RZ_OWN char *check_svd_in_dir(RZ_NULLABLE const char *dir_path, RZ_NULLAB
 }
 
 /**
- * \brief Find an SVD file for a given device name
+ * \brief Find an SVD file for a given device name in the specified base path
  *
- * Searches in standard locations in this order:
- * - $RZ_SVD_DIR/ (if environment variable is set)
- * - ~/.local/share/rizin/svd/
- * - <install_prefix>/share/rizin/svd/ (compile-time path)
- * - /usr/share/rizin/svd/
- * - /usr/local/share/rizin/svd/
- *
+ * \param[in] base_path Base directory path where SVD files are located
  * \param[in] device_name Device name
  * \return char* path to SVD file or NULL if not found (caller must free)
  */
-RZ_API RZ_OWN char *rz_svd_find_file(RZ_NULLABLE const char *device_name) {
-	if (!device_name) {
+RZ_API RZ_OWN char *rz_svd_find_file(RZ_NULLABLE const char *base_path, RZ_NULLABLE const char *device_name) {
+	if (!base_path || !device_name) {
 		return NULL;
 	}
 
@@ -210,59 +204,9 @@ RZ_API RZ_OWN char *rz_svd_find_file(RZ_NULLABLE const char *device_name) {
 		*p = tolower(*p);
 	}
 
-	// Try various locations
-	char *result = NULL;
-
-	// 1. First check RZ_SVD_DIR environment variable if set
-	const char *svd_dir = getenv("RZ_SVD_DIR");
-	if (svd_dir && (result = check_svd_in_dir(svd_dir, lower_name))) {
-		free(lower_name);
-		return result;
-	}
-
-	// 2. Check user home directory
-	const char *home = getenv("HOME");
-	if (home) {
-		char *home_svd_dir = rz_str_newf("%s/.local/share/rizin/svd", home);
-		if (home_svd_dir) {
-			result = check_svd_in_dir(home_svd_dir, lower_name);
-			free(home_svd_dir);
-			if (result) {
-				free(lower_name);
-				return result;
-			}
-		}
-	}
-
-	// 3. Check compile-time defined data directory (e.g., PREFIX/share/rizin/svd)
-#ifdef RZ_SVD_DATADIR
-	if ((result = check_svd_in_dir(RZ_SVD_DATADIR, lower_name))) {
-		free(lower_name);
-		return result;
-	}
-#endif
-
-	// 4. Check source directory (for development/testing)
-#ifdef RZ_SVD_SRCDIR
-	if ((result = check_svd_in_dir(RZ_SVD_SRCDIR, lower_name))) {
-		free(lower_name);
-		return result;
-	}
-#endif
-
-	// 5. Fallback to standard system paths
-	if ((result = check_svd_in_dir("/usr/share/rizin/svd", lower_name))) {
-		free(lower_name);
-		return result;
-	}
-
-	if ((result = check_svd_in_dir("/usr/local/share/rizin/svd", lower_name))) {
-		free(lower_name);
-		return result;
-	}
-
+	char *result = check_svd_in_dir(base_path, lower_name);
 	free(lower_name);
-	return NULL;
+	return result;
 }
 
 // XML parsing implementation

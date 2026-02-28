@@ -35,7 +35,7 @@ RZ_API RZ_OWN RzSvdContext *rz_svd_new(RZ_NONNULL const char *svd_path);
 RZ_API void rz_svd_free(RZ_NULLABLE RzSvdContext *ctx);
 RZ_API RZ_NULLABLE RzSvdDevice *rz_svd_get_device(RZ_NULLABLE RzSvdContext *ctx, RZ_NULLABLE const char *device_name);
 RZ_API RZ_NULLABLE RzSvdInterrupt *rz_svd_device_get_interrupt(RZ_NULLABLE RzSvdDevice *device, ut32 index);
-RZ_API RZ_OWN char *rz_svd_find_file(RZ_NULLABLE const char *device_name);
+RZ_API RZ_OWN char *rz_svd_find_file(RZ_NULLABLE const char *base_path, RZ_NULLABLE const char *device_name);
 
 #ifdef __cplusplus
 }
