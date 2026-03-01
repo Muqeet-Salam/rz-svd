@@ -9,33 +9,37 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-          python3-wheel \
-          python3-setuptools \
-          python3-dev \
-          ninja-build \
-          git 
-      - name: Install meson and Python tools
-        run: |
-          sudo apt-get install -y meson ninja-build python3-pip
-      - name: Install Rizin
+            python3-wheel \
+            python3-setuptools \
+            python3-dev \
+            meson \
+            ninja-build \
+            git
+
+      - name: Clone Rizin
         run: |
           git clone --depth 1 --branch rzsvdwrap https://github.com/Muqeet-Salam/rizin.git
+
+      - name: Checkout rz-svd into Rizin subprojects
+        uses: actions/checkout@v3
+        with:
+          path: rizin/subprojects/rz-svd
+
+      - name: Build Rizin (with rz-svd subproject)
+        run: |
           cd rizin
           meson setup build --buildtype=release --prefix=/usr
           ninja -C build
-          sudo ninja -C build install
-          cd ..
-      - name: Build and install rz-svd
+
+      - name: Install
         run: |
-          meson setup build --buildtype=release --prefix=/usr
-          ninja -C build
+          cd rizin
           sudo ninja -C build install
-      - name: Verify plugin loads
+
+      - name: Verify rz-svd is compiled in
         run: |
-          rizin -qc "Lc" | grep rz-svd
+          rizin -qc "Lc" | grep svd
