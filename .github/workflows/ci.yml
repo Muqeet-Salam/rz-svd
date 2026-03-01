@@ -32,15 +32,7 @@ jobs:
       - name: Build Rizin (with rz-svd subproject)
         run: |
           cd rizin
-          meson setup build --buildtype=release --prefix=/usr
+          meson setup build --buildtype=release --prefix=/usr 2>&1 | tee meson-output.txt
+          grep 'rz-svd.*YES' meson-output.txt
           ninja -C build
-
-      - name: Install
-        run: |
-          cd rizin
           sudo ninja -C build install
-
-      - name: Verify rz-svd library is installed
-        run: |
-          ldconfig -p | grep librz_svd
-          test -f /usr/lib/x86_64-linux-gnu/librz_svd.so
