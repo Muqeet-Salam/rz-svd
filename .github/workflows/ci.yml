@@ -40,6 +40,7 @@ jobs:
           cd rizin
           sudo ninja -C build install
 
-      - name: Verify rz-svd is compiled in
+      - name: Verify rz-svd library is installed
         run: |
-          rizin -qc "Lc" | grep svd
+          ldconfig -p | grep librz_svd
+          test -f /usr/lib/x86_64-linux-gnu/librz_svd.so
