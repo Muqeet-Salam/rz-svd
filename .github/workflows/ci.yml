@@ -22,7 +22,7 @@ jobs:
 
       - name: Clone Rizin
         run: |
-          git clone --depth 1 --branch rzsvdwrap https://github.com/rizinorg/rizin
+          git clone --depth 1 https://github.com/rizinorg/rizin
 
       - name: Checkout rz-svd into Rizin subprojects
         uses: actions/checkout@v3
