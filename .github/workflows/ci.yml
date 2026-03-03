@@ -2,9 +2,9 @@ name: rz-svd
 
 on:
   push:
-    branches: [ dependency ]
+    branches: [ dev ]
   pull_request:
-    branches: [ dependency ]
+    branches: [ dev ]
 jobs:
   build:
     runs-on: ubuntu-latest
