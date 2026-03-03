@@ -62,14 +62,18 @@ rz_svd = both_libraries('rz_svd',
   install: false,
 )
 
-# When used as a subproject with default_library=static (e.g., Rizin),
-# prefer the static library. Otherwise, use the shared library by default.
-if get_option('default_library') == 'static'
+# When used as a subproject (e.g., by Rizin), always prefer the static library
+# since rz_svd is not installed separately — it gets embedded into the parent
+# shared library (e.g., librz_bin.so). Using the shared lib here would cause
+# runtime errors because librz_svd.so is built with install: false.
+if meson.is_subproject()
+    rz_svd_link = rz_svd.get_static_lib()
+elif get_option('default_library') == 'static'
     rz_svd_link = rz_svd.get_static_lib()
 elif get_option('default_library') == 'shared'
     rz_svd_link = rz_svd.get_shared_lib()
 else
-    # For 'both', prefer static for better compatibility as a subproject
+    # For 'both', prefer static for better compatibility
     rz_svd_link = rz_svd.get_static_lib()
 endif
 
