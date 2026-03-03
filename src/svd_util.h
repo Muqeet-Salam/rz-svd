@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: 2007-2020 pancake <pancake@nopcode.org>
-// SPDX-FileCopyrightText: 2026 Muqeet Salam <muqeetsalam168@gmail.com>
 // SPDX-License-Identifier: LGPL-3.0-only
 
 // Internal utility header for rz-svd standalone compilation.
