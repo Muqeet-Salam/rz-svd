@@ -20,19 +20,10 @@ jobs:
             ninja-build \
             git
 
-      - name: Clone Rizin
-        run: |
-          git clone --depth 1 https://github.com/rizinorg/rizin
-
-      - name: Checkout rz-svd into Rizin subprojects
+      - name: Checkout rz-svd
         uses: actions/checkout@v3
-        with:
-          path: rizin/subprojects/rz-svd
 
-      - name: Build Rizin (with rz-svd subproject)
+      - name: Build rz-svd (standalone)
         run: |
-          cd rizin
-          meson setup build --buildtype=release --prefix=/usr 2>&1 | tee meson-output.txt
-          grep 'rz-svd.*YES' meson-output.txt
+          meson setup build --buildtype=release
           ninja -C build
-          sudo ninja -C build install

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 
 #include "rz_svd.h"
-#include <rz_util.h>
+#include "src/svd_util.h"
 #include <yxml.h>
 #include <string.h>
 #include <ctype.h>
@@ -46,7 +46,7 @@ static void free_device(RzSvdDevice *device) {
 	free(device->vendor);
 	free(device->version);
 	if (device->interrupts) {
-		rz_list_free(device->interrupts);
+		svd_list_free(device->interrupts);
 	}
 	free(device);
 }
@@ -57,12 +57,12 @@ static void free_device(RzSvdDevice *device) {
  * \param[in] svd_path Path to the SVD file
  * \return RzSvdContext* or NULL on failure
  */
-RZ_API RZ_OWN RzSvdContext *rz_svd_new(RZ_NONNULL const char *svd_path) {
+SVD_LIB_EXPORT RzSvdContext *rz_svd_new(const char *svd_path) {
 	if (!svd_path) {
 		return NULL;
 	}
 
-	char *doc = rz_file_slurp(svd_path, NULL);
+	char *doc = svd_file_slurp(svd_path, NULL);
 	if (!doc) {
 		RZ_LOG_DEBUG("Failed to open SVD file: %s\n", svd_path);
 		return NULL;
@@ -81,7 +81,7 @@ RZ_API RZ_OWN RzSvdContext *rz_svd_new(RZ_NONNULL const char *svd_path) {
 	}
 
 	ctx->file_path = strdup(svd_path);
-	ctx->devices = rz_list_newf((RzListFree)free_device);
+	ctx->devices = svd_list_newf((SvdListFree)free_device);
 	if (!ctx->devices) {
 		free(ctx->file_path);
 		free(ctx);
@@ -106,12 +106,12 @@ RZ_API RZ_OWN RzSvdContext *rz_svd_new(RZ_NONNULL const char *svd_path) {
  *
  * \param[in] ctx SVD context to free
  */
-RZ_API void rz_svd_free(RZ_NULLABLE RzSvdContext *ctx) {
+SVD_LIB_EXPORT void rz_svd_free(RzSvdContext *ctx) {
 	if (!ctx) {
 		return;
 	}
 	free(ctx->file_path);
-	rz_list_free(ctx->devices);
+	svd_list_free(ctx->devices);
 	free(ctx);
 }
 
@@ -122,14 +122,14 @@ RZ_API void rz_svd_free(RZ_NULLABLE RzSvdContext *ctx) {
  * \param[in] device_name Device name (case-insensitive)
  * \return RzSvdDevice* or NULL if not found
  */
-RZ_API RZ_NULLABLE RzSvdDevice *rz_svd_get_device(RZ_NULLABLE RzSvdContext *ctx, RZ_NULLABLE const char *device_name) {
+SVD_LIB_EXPORT RzSvdDevice *rz_svd_get_device(RzSvdContext *ctx, const char *device_name) {
 	if (!ctx || !device_name) {
 		return NULL;
 	}
 
-	RzListIter *iter;
+	SvdListNode *iter;
 	RzSvdDevice *device;
-	rz_list_foreach (ctx->devices, iter, device) {
+	svd_list_foreach (ctx->devices, iter, device) {
 		if (device->name && strcasecmp(device->name, device_name) == 0) {
 			return device;
 		}
@@ -144,14 +144,14 @@ RZ_API RZ_NULLABLE RzSvdDevice *rz_svd_get_device(RZ_NULLABLE RzSvdContext *ctx,
  * \param[in] index Interrupt index
  * \return RzSvdInterrupt* or NULL if index out of range
  */
-RZ_API RZ_NULLABLE RzSvdInterrupt *rz_svd_device_get_interrupt(RZ_NULLABLE RzSvdDevice *device, ut32 index) {
+SVD_LIB_EXPORT RzSvdInterrupt *rz_svd_device_get_interrupt(RzSvdDevice *device, uint32_t index) {
 	if (!device || !device->interrupts) {
 		return NULL;
 	}
 
-	RzListIter *iter;
+	SvdListNode *iter;
 	RzSvdInterrupt *interrupt;
-	rz_list_foreach (device->interrupts, iter, interrupt) {
+	svd_list_foreach (device->interrupts, iter, interrupt) {
 		if (interrupt->value == index) {
 			return interrupt;
 		}
@@ -166,17 +166,17 @@ RZ_API RZ_NULLABLE RzSvdInterrupt *rz_svd_device_get_interrupt(RZ_NULLABLE RzSvd
  * \param[in] lower_name Lowercase device name
  * \return char* full path to SVD file or NULL if not found (caller must free)
  */
-static RZ_OWN char *check_svd_in_dir(RZ_NULLABLE const char *dir_path, RZ_NULLABLE const char *lower_name) {
+static char *check_svd_in_dir(const char *dir_path, const char *lower_name) {
 	if (!dir_path || !lower_name) {
 		return NULL;
 	}
 
-	char *path = rz_str_newf(RZ_JOIN_2_PATHS("%s", "%s.svd"), dir_path, lower_name);
+	char *path = svd_str_newf(RZ_JOIN_2_PATHS("%s", "%s.svd"), dir_path, lower_name);
 	if (!path) {
 		return NULL;
 	}
 
-	if (rz_file_exists(path)) {
+	if (svd_file_exists(path)) {
 		return path;
 	}
 	free(path);
@@ -190,7 +190,7 @@ static RZ_OWN char *check_svd_in_dir(RZ_NULLABLE const char *dir_path, RZ_NULLAB
  * \param[in] device_name Device name
  * \return char* path to SVD file or NULL if not found (caller must free)
  */
-RZ_API RZ_OWN char *rz_svd_find_file(RZ_NULLABLE const char *base_path, RZ_NULLABLE const char *device_name) {
+SVD_LIB_EXPORT char *rz_svd_find_file(const char *base_path, const char *device_name) {
 	if (!base_path || !device_name) {
 		return NULL;
 	}
@@ -242,7 +242,7 @@ static void parse_svd_xml(SvdParser *parser) {
 				device_depth = depth;
 				parser->current_device = RZ_NEW0(RzSvdDevice);
 				if (parser->current_device) {
-					parser->current_device->interrupts = rz_list_newf((RzListFree)free_interrupt);
+						parser->current_device->interrupts = svd_list_newf((SvdListFree)free_interrupt);
 				}
 			} else if (parser->current_device && depth == device_depth + 1) {
 				if (strcasecmp(parser->x.elem, "name") == 0) {
@@ -344,7 +344,7 @@ static void parse_svd_xml(SvdParser *parser) {
 			if (depth == interrupt_depth && parser->current_interrupt) {
 				// End of interrupt element
 				if (parser->current_device && parser->current_device->interrupts) {
-					rz_list_append(parser->current_device->interrupts, parser->current_interrupt);
+					svd_list_append(parser->current_device->interrupts, parser->current_interrupt);
 				} else {
 					free_interrupt(parser->current_interrupt);
 				}
@@ -352,7 +352,7 @@ static void parse_svd_xml(SvdParser *parser) {
 				interrupt_depth = -1;
 			} else if (depth == device_depth && parser->current_device) {
 				// End of device element
-				rz_list_append(parser->ctx->devices, parser->current_device);
+				svd_list_append(parser->ctx->devices, parser->current_device);
 				parser->current_device = NULL;
 				device_depth = -1;
 			}
