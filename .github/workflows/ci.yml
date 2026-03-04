@@ -1,0 +1,29 @@
+name: rz-svd
+
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-wheel \
+            python3-setuptools \
+            python3-dev \
+            meson \
+            ninja-build \
+            git
+
+      - name: Checkout rz-svd
+        uses: actions/checkout@v3
+
+      - name: Build rz-svd (standalone)
+        run: |
+          meson setup build --buildtype=release
+          ninja -C build
