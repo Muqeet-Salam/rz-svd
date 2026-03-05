@@ -19,6 +19,10 @@
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
+// Windows compatibility for POSIX string functions
+#define strcasecmp  _stricmp
+#define strncasecmp _strnicmp
+#define strdup      _strdup
 #endif
 
 // Basic type aliases (from rz_types_base.h)
