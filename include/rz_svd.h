@@ -13,7 +13,7 @@ extern "C" {
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #define SVD_LIB_EXPORT __attribute__((visibility("default")))
-#elif defined(_MSC_VER)
+#elif defined(_WIN32)
 #define SVD_LIB_EXPORT __declspec(dllexport)
 #else
 #define SVD_LIB_EXPORT
