@@ -7,6 +7,11 @@
 #include <string.h>
 #include <ctype.h>
 
+// Windows compatibility
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
+
 #define XMLBUFSIZE 4096
 #define VALUESIZE  2048
 
