@@ -47,6 +47,7 @@ svd_datadir = rizin_datdir_rz / 'svd'
 svd_srcdir = meson.current_source_dir() / 'svd'
 
 rz_svd_c_args += [
+  '-DHAVE_RZ_SVD=1',
   '-DRZ_SVD_DATADIR="' + svd_datadir + '"',
   '-DRZ_SVD_SRCDIR="' + svd_srcdir + '"',
 ]
@@ -81,6 +82,7 @@ rz_svd_dep = declare_dependency(
   link_with: rz_svd_link,
   dependencies: [],
   include_directories: include_directories('include'),
+  c_args: rz_svd_c_args,
 )
 
 meson.override_dependency('rz_svd', rz_svd_dep)
