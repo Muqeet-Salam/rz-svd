@@ -57,6 +57,7 @@ endif
 rz_svd_c_args += [
   '-DRZ_SVD_DATADIR="' + svd_datadir + '"',
   '-DRZ_SVD_SRCDIR="' + svd_srcdir + '"',
+  '-DRZ_SVD_USERDIR="' + rz_svd_userdir + '"',
 ]
 
 rz_svd = both_libraries('rz_svd',
