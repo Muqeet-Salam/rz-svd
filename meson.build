@@ -45,9 +45,16 @@ svd_datadir = rizin_datdir_rz / 'svd'
 
 # Source directory for SVD files (for development/testing)
 svd_srcdir = meson.current_source_dir() / 'svd'
-
+rz_svd_srcdir = svd_srcdir
+rz_svd_datadir = svd_datadir
+if host_machine.system() == 'windows'
+  rz_svd_userdir = '%APPDATA%\\rizin\\svd'
+elif host_machine.system() == 'darwin'
+  rz_svd_userdir = '~/Library/Application Support/rizin/svd'
+else
+  rz_svd_userdir = '~/.local/share/rizin/svd'
+endif
 rz_svd_c_args += [
-  '-DHAVE_RZ_SVD=1',
   '-DRZ_SVD_DATADIR="' + svd_datadir + '"',
   '-DRZ_SVD_SRCDIR="' + svd_srcdir + '"',
 ]
