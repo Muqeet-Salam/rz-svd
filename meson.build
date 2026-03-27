@@ -48,7 +48,7 @@ svd_srcdir = meson.current_source_dir() / 'svd'
 rz_svd_srcdir = svd_srcdir
 rz_svd_datadir = svd_datadir
 if host_machine.system() == 'windows'
-  rz_svd_userdir = '%APPDATA%\\rizin\\svd'
+  rz_svd_userdir = 'APPDATA/rizin/svd'
 elif host_machine.system() == 'darwin'
   rz_svd_userdir = '~/Library/Application Support/rizin/svd'
 else
@@ -57,6 +57,7 @@ endif
 rz_svd_c_args += [
   '-DRZ_SVD_DATADIR="' + svd_datadir + '"',
   '-DRZ_SVD_SRCDIR="' + svd_srcdir + '"',
+  '-DRZ_SVD_USERDIR="' + rz_svd_userdir + '"',
 ]
 
 rz_svd = both_libraries('rz_svd',
